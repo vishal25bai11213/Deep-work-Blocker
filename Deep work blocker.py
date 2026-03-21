@@ -46,3 +46,68 @@ STUDY_TOPICS = [
     {"name": "DBMS",                 "exam_date": "2025-07-18", "difficulty": 2, "hours_needed": 4},
     {"name": "Theory of Computation","exam_date": "2025-07-22", "difficulty": 5, "hours_needed": 10},
 ]
+
+# ──────────────────────────────────────────────────────────
+# HOSTS FILE MANAGEMENT
+# ──────────────────────────────────────────────────────────
+
+REDIRECT      = "127.0.0.1"
+BLOCK_START   = "# ===== DEEP WORK BLOCKER START ====="
+BLOCK_END     = "# ===== DEEP WORK BLOCKER END ====="
+
+def get_hosts_path():
+    if platform.system() == "Windows":
+        return r"C:\Windows\System32\drivers\etc\hosts"
+    return "/etc/hosts"
+
+def _read_hosts():
+    with open(get_hosts_path(), "r") as f:
+        return f.read()
+
+def _write_hosts(content):
+    with open(get_hosts_path(), "w") as f:
+        f.write(content)
+
+def _strip_block(content):
+    """Remove any existing blocker section from the hosts content."""
+    lines  = content.splitlines()
+    result = []
+    inside = False
+    for line in lines:
+        if line.strip() == BLOCK_START:
+            inside = True
+            continue
+        if line.strip() == BLOCK_END:
+            inside = False
+            continue
+        if not inside:
+            result.append(line)
+    return "\n".join(result).rstrip("\n") + "\n"
+
+def block_sites():
+    try:
+        content = _read_hosts()
+        content = _strip_block(content)           # clean up any stale entries
+        block   = [BLOCK_START]
+        for site in BLOCKED_SITES:
+            block.append(f"{REDIRECT}  {site}")
+        block.append(BLOCK_END)
+        _write_hosts(content.rstrip("\n") + "\n" + "\n".join(block) + "\n")
+        print("  🔒 Sites blocked.")
+        return True
+    except PermissionError:
+        print("\n  ⚠  Permission denied — cannot edit hosts file.")
+        if platform.system() == "Windows":
+            print("     Re-run this script as Administrator.")
+        else:
+            print(f"     Re-run: sudo python3 {sys.argv[0]}")
+        return False
+
+def unblock_sites():
+    try:
+        content = _read_hosts()
+        _write_hosts(_strip_block(content))
+        print("  🔓 Sites unblocked.")
+    except PermissionError:
+        print("  ⚠  Could not unblock sites — remove the DEEP WORK BLOCKER")
+        print(f"     section from {get_hosts_path()} manually.")
