@@ -142,3 +142,34 @@ def show_study_plan():
         flag  = " 🔴" if days <= 3 else " 🟡" if days <= 7 else ""
         print(f"  {i:<3} {topic['name']:<26} {days:>6} days  {score:>5.1f}{flag}")
     print("═" * 50)
+
+
+
+
+# ──────────────────────────────────────────────────────────
+# TIMER
+# ──────────────────────────────────────────────────────────
+
+def countdown(minutes, label):
+    """Countdown with a live updating progress bar in the terminal."""
+    total_secs = minutes * 60
+    remaining  = total_secs
+    bar_width  = 30
+
+    print()
+    try:
+        while remaining >= 0:
+            mins, secs = divmod(remaining, 60)
+            filled = int(bar_width * (total_secs - remaining) / total_secs)
+            bar    = "█" * filled + "░" * (bar_width - filled)
+            print(f"\r  {label}  [{bar}]  {mins:02d}:{secs:02d} ", end="", flush=True)
+            if remaining == 0:
+                break
+            time.sleep(1)
+            remaining -= 1
+    except KeyboardInterrupt:
+        print("\n\n  ⏹  Session interrupted.")
+        unblock_sites()
+        sys.exit(0)
+
+    print()   # newline after bar completes
