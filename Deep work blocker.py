@@ -111,3 +111,34 @@ def unblock_sites():
     except PermissionError:
         print("  ⚠  Could not unblock sites — remove the DEEP WORK BLOCKER")
         print(f"     section from {get_hosts_path()} manually.")
+
+# ──────────────────────────────────────────────────────────
+# STUDY PLANNER  (CO2 — Weighted Shortest Deadline First)
+# ──────────────────────────────────────────────────────────
+
+def urgency_score(topic):
+    """
+    Weighted urgency heuristic (Weighted Job Scheduling / CO2 greedy search).
+      score = (difficulty × hours_needed) / days_until_exam
+    Higher score → study this first.
+    """
+    today    = datetime.today().date()
+    exam     = datetime.strptime(topic["exam_date"], "%Y-%m-%d").date()
+    days_left = max((exam - today).days, 0.5)   # avoid division by zero
+    return (topic["difficulty"] * topic["hours_needed"]) / days_left
+
+def show_study_plan():
+    ranked = sorted(STUDY_TOPICS, key=urgency_score, reverse=True)
+    today  = datetime.today().date()
+    print("\n" + "═" * 50)
+    print("  📚  OPTIMAL STUDY SEQUENCE  (CO2 greedy search)")
+    print("═" * 50)
+    print(f"  {'#':<3} {'Topic':<26} {'Days Left':>9} {'Score':>7}")
+    print("  " + "─" * 46)
+    for i, topic in enumerate(ranked, 1):
+        exam  = datetime.strptime(topic["exam_date"], "%Y-%m-%d").date()
+        days  = (exam - today).days
+        score = urgency_score(topic)
+        flag  = " 🔴" if days <= 3 else " 🟡" if days <= 7 else ""
+        print(f"  {i:<3} {topic['name']:<26} {days:>6} days  {score:>5.1f}{flag}")
+    print("═" * 50)
