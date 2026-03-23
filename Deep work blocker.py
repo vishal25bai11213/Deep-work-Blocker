@@ -173,3 +173,60 @@ def countdown(minutes, label):
         sys.exit(0)
 
     print()   # newline after bar completes
+
+# ──────────────────────────────────────────────────────────
+# MAIN LOOP
+# ──────────────────────────────────────────────────────────
+ 
+def main():
+    print("\n" + "═" * 50)
+    print("  🧠  DEEP WORK — Pomodoro + Site Blocker")
+    print("═" * 50)
+    print(f"  Focus     : {FOCUS_MINUTES} min")
+    print(f"  Short break: {SHORT_BREAK} min")
+    print(f"  Long break : {LONG_BREAK} min  (every {CYCLES_BEFORE_LONG_BREAK} sessions)")
+    print(f"  Blocking   : {len(BLOCKED_SITES)} domains")
+ 
+    # Show study planner upfront
+    show_study_plan()
+ 
+    print("\n  Press ENTER to start your first focus session (Ctrl+C to quit).")
+    input()
+ 
+    session = 0
+ 
+    while True:
+        session += 1
+        print(f"\n{'─'*50}")
+        print(f"  🍅  Session #{session} — FOCUS  ({FOCUS_MINUTES} min)")
+ 
+        blocked = block_sites()
+        if not blocked:
+            # No admin rights — timer still works, just no blocking
+            print("  (Continuing without website blocking)\n")
+ 
+        countdown(FOCUS_MINUTES, "FOCUS   ")
+ 
+        # Unblock before break
+        unblock_sites()
+        print(f"\n  ✅  Session #{session} complete! Great work.\n")
+ 
+        # Decide break length
+        if session % CYCLES_BEFORE_LONG_BREAK == 0:
+            print(f"  ☕  Long break — {LONG_BREAK} min")
+            countdown(LONG_BREAK, "BREAK   ")
+        else:
+            print(f"  ☕  Short break — {SHORT_BREAK} min")
+            countdown(SHORT_BREAK, "BREAK   ")
+ 
+        print("\n  Press ENTER for the next session (Ctrl+C to quit).")
+        try:
+            input()
+        except KeyboardInterrupt:
+            print("\n  👋  Goodbye! Keep grinding.\n")
+            sys.exit(0)
+ 
+ 
+if __name__ == "__main__":
+    main()
+ 
